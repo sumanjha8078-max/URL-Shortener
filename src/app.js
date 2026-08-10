@@ -9,14 +9,7 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Middleware
-app.use(express.json());
-app.use(express.static('src/public'));
-
-// Routes
-app.use('/', urlRoutes);
-
-// Lazy Initialization for Serverless (Vercel)
+// Lazy Initialization for Serverless (Vercel) MUST be before routes
 let isInitialized = false;
 app.use(async (req, res, next) => {
   if (!isInitialized) {
@@ -26,6 +19,13 @@ app.use(async (req, res, next) => {
   }
   next();
 });
+
+// Middleware
+app.use(express.json());
+app.use(express.static('public'));
+
+// Routes
+app.use('/', urlRoutes);
 
 // Export for Vercel Serverless
 export default app;
