@@ -8,6 +8,18 @@
     {
       "source": "/([a-zA-Z0-9_-]+)",
       "destination": "/api/index.js"
+    },
+    {
+      "source": "/",
+      "destination": "/public/index.html"
+    },
+    {
+      "source": "/style.css",
+      "destination": "/public/style.css"
+    },
+    {
+      "source": "/script.js",
+      "destination": "/public/script.js"
     }
   ]
 }
