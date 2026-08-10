@@ -1,6 +1,7 @@
 import express from 'express';
 import dotenv from 'dotenv';
 import connectDB from './config/db.js';
+import cors from 'cors';
 import { connectRedis } from './config/redis.js';
 import urlRoutes from './routes/urlRoutes.js';
 
@@ -21,6 +22,7 @@ app.use(async (req, res, next) => {
 });
 
 // Middleware
+app.use(cors()); // Allow cross-origin requests from Vercel frontend
 app.use(express.json());
 app.use(express.static('public'));
 

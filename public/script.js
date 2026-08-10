@@ -39,7 +39,13 @@ document.addEventListener('DOMContentLoaded', () => {
     resultContainer.classList.remove('show');
 
     try {
-      const response = await fetch('/api/shorten', {
+      // If running on Vercel frontend, we might want to configure this URL.
+      // For now, if an environment variable or config isn't available, we'll
+      // assume the backend might be hosted at a different origin (e.g. Render).
+      // You can set API_BASE_URL to your Render URL when deploying.
+      const API_BASE_URL = window.API_BASE_URL || ''; 
+      
+      const response = await fetch(`${API_BASE_URL}/api/shorten`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ originalUrl }),
