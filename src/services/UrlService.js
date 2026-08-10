@@ -16,10 +16,12 @@ export default class UrlService {
     const savedUrl = await this.urlRepository.saveUrl(urlData);
 
     // Pre-warm the Redis cache (expires in 24 hours = 86400 seconds)
-    if (this.redisClient && this.redisClient.isReady) {
-      await this.redisClient.setEx(shortCode, 86400, originalUrl).catch(err => {
-         console.error('Error setting cache:', err);
-      });
+    try {
+      if (this.redisClient && this.redisClient.isReady) {
+        await this.redisClient.setEx(shortCode, 86400, originalUrl);
+      }
+    } catch (err) {
+      console.error('Error setting cache:', err);
     }
 
     return savedUrl;
@@ -29,11 +31,12 @@ export default class UrlService {
     // 1. Check Redis cache first
     let originalUrl = null;
     
-    if (this.redisClient && this.redisClient.isReady) {
-      originalUrl = await this.redisClient.get(shortCode).catch(err => {
-         console.error('Error getting from cache:', err);
-         return null;
-      });
+    try {
+      if (this.redisClient && this.redisClient.isReady) {
+        originalUrl = await this.redisClient.get(shortCode);
+      }
+    } catch (err) {
+      console.error('Error getting from cache:', err);
     }
 
     if (originalUrl) {
@@ -53,10 +56,12 @@ export default class UrlService {
     originalUrl = urlDoc.originalUrl;
 
     // Update cache asynchronously
-    if (this.redisClient && this.redisClient.isReady) {
-      this.redisClient.setEx(shortCode, 86400, originalUrl).catch((err) => {
-         console.error('Error updating cache:', err);
-      });
+    try {
+      if (this.redisClient && this.redisClient.isReady) {
+        await this.redisClient.setEx(shortCode, 86400, originalUrl);
+      }
+    } catch (err) {
+      console.error('Error updating cache:', err);
     }
 
     // Trigger async click increment
