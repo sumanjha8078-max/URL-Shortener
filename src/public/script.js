@@ -15,30 +15,40 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let currentShortUrl = '';
 
+  const showError = (message) => {
+    errorText.textContent = message;
+    errorContainer.classList.add('show');
+    resultContainer.classList.remove('show');
+  };
+
+  const hideError = () => {
+    errorContainer.classList.remove('show');
+  };
+
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
-    
-    // Reset state
-    errorContainer.classList.add('hidden');
-    resultContainer.classList.add('hidden');
+    hideError();
+
+    const originalUrl = urlInput.value.trim();
+    if (!originalUrl) return;
+
+    // Loading State
     submitBtn.disabled = true;
-    submitBtn.classList.add('opacity-75', 'cursor-not-allowed');
     submitText.textContent = 'Shortening...';
-    loadingSpinner.classList.remove('hidden');
+    loadingSpinner.classList.add('show');
+    resultContainer.classList.remove('show');
 
     try {
       const response = await fetch('/api/shorten', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ originalUrl: urlInput.value.trim() }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ originalUrl }),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Something went wrong. Please try again.');
+        throw new Error(data.error || 'Failed to shorten URL');
       }
 
       // Success
@@ -46,17 +56,16 @@ document.addEventListener('DOMContentLoaded', () => {
       shortUrlLink.href = currentShortUrl;
       shortUrlLink.textContent = currentShortUrl;
       
-      form.reset();
-      resultContainer.classList.remove('hidden');
-      
+      resultContainer.classList.add('show');
+      urlInput.value = '';
+
     } catch (err) {
-      errorText.textContent = err.message;
-      errorContainer.classList.remove('hidden');
+      showError(err.message);
     } finally {
+      // Reset button state
       submitBtn.disabled = false;
-      submitBtn.classList.remove('opacity-75', 'cursor-not-allowed');
       submitText.textContent = 'Shorten URL';
-      loadingSpinner.classList.add('hidden');
+      loadingSpinner.classList.remove('show');
     }
   });
 
@@ -69,17 +78,15 @@ document.addEventListener('DOMContentLoaded', () => {
       // UX Feedback
       const originalText = copyText.textContent;
       copyText.textContent = 'Copied!';
-      copyBtn.classList.add('bg-green-600', 'text-white', 'border-green-500', 'hover:bg-green-500', 'hover:shadow-[0_0_15px_rgba(34,197,94,0.4)]');
-      copyBtn.classList.remove('text-brand-400', 'bg-brand-950/30', 'border-brand-500/50', 'hover:bg-brand-500', 'hover:shadow-[0_0_20px_rgba(236,72,153,0.4)]');
+      copyBtn.classList.add('success');
       
       setTimeout(() => {
         copyText.textContent = originalText;
-        copyBtn.classList.remove('bg-green-600', 'text-white', 'border-green-500', 'hover:bg-green-500', 'hover:shadow-[0_0_15px_rgba(34,197,94,0.4)]');
-        copyBtn.classList.add('text-brand-400', 'bg-brand-950/30', 'border-brand-500/50', 'hover:bg-brand-500', 'hover:shadow-[0_0_20px_rgba(236,72,153,0.4)]');
+        copyBtn.classList.remove('success');
       }, 2000);
     } catch (err) {
       console.error('Failed to copy text: ', err);
-      // Fallback or alert if needed
+      showError('Failed to copy to clipboard.');
     }
   });
 });

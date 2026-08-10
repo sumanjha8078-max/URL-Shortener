@@ -1,105 +1,39 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>URL Shortener</title>
-  <meta name="description" content="A fast, minimal URL shortener.">
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      darkMode: 'class',
-      theme: {
-        extend: {
-          colors: {
-            brand: {
-              400: '#f472b6', /* pink-400 */
-              500: '#ec4899', /* pink-500 */
-              600: '#db2777', /* pink-600 */
-              700: '#be185d', /* pink-700 */
-              950: '#831843', /* pink-950 */
-            }
-          },
-          animation: {
-            'fade-in': 'fadeIn 0.5s ease-out forwards',
-          },
-          keyframes: {
-            fadeIn: {
-              '0%': { opacity: '0', transform: 'translateY(10px)' },
-              '100%': { opacity: '1', transform: 'translateY(0)' },
-            }
-          }
-        }
-      }
-    }
-  </script>
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-    
-    body {
-      font-family: 'Inter', sans-serif;
-      background: radial-gradient(circle at top, #18181b 0%, #000000 100%);
-      color: #ffffff;
-      background-attachment: fixed;
-    }
-
-    .pink-card {
-      background: #09090b;
-      border: 1px solid rgba(236, 72, 153, 0.2);
-      box-shadow: 0 10px 40px -10px rgba(236, 72, 153, 0.15);
-    }
-  </style>
+  <meta name="description" content="A premium, fast, and minimalist URL shortener.">
+  <link rel="stylesheet" href="style.css">
 </head>
-<body class="min-h-screen flex items-center justify-center p-6 selection:bg-brand-500 selection:text-white">
+<body>
   
-  <main class="pink-card w-full max-w-md rounded-3xl p-8 sm:p-10 animate-fade-in transform transition-all duration-500 hover:shadow-[0_15px_50px_-10px_rgba(236,72,153,0.25)] hover:border-brand-500/40">
-    <header class="text-center mb-10">
-      <h1 class="text-4xl font-extrabold tracking-tight mb-3">
-        <span class="text-white">sl</span><span class="text-brand-500">.</span>
-      </h1>
-      <p class="text-zinc-400 font-medium text-sm">Shorten your links with style.</p>
+  <main class="container">
+    <header>
+      <h1>sl<span class="dot">.</span></h1>
+      <p class="subtitle">Shorten your links with style</p>
     </header>
 
-    <!-- Error Message -->
-    <div id="error-container" class="hidden mb-6 p-4 rounded-xl bg-red-900/20 border border-red-500/30 text-red-400 text-sm font-medium transition-all duration-300">
+    <div id="error-container" class="error-msg">
       <span id="error-text"></span>
     </div>
 
-    <!-- Form -->
-    <form id="shorten-form" class="space-y-6 group">
-      <div>
-        <label for="url" class="sr-only">Original URL</label>
-        <input 
-          type="url" 
-          id="url" 
-          required
-          placeholder="Enter a long URL..." 
-          class="w-full bg-black border border-zinc-800 rounded-xl px-5 py-4 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500 transition-all duration-300 shadow-inner text-base"
-        >
+    <form id="shorten-form">
+      <div class="input-group">
+        <label for="url" style="display:none;">Original URL</label>
+        <input type="url" id="url" required placeholder="Enter a long URL...">
       </div>
-      <button 
-        type="submit" 
-        id="submit-btn"
-        class="group relative flex w-full items-center justify-center px-8 py-4 text-sm font-bold tracking-widest uppercase text-white bg-brand-600 rounded-xl border border-brand-500 hover:bg-brand-500 hover:shadow-[0_0_25px_rgba(236,72,153,0.5)] hover:-translate-y-1 transition-all duration-300"
-      >
-        <span class="relative z-10 flex items-center">
-          <span id="submit-text">Shorten URL</span>
-          <svg id="loading-spinner" class="hidden animate-spin ml-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-          </svg>
-        </span>
+      <button type="submit" id="submit-btn" class="btn-primary">
+        <span id="submit-text">Shorten URL</span>
+        <div id="loading-spinner" class="spinner"></div>
       </button>
     </form>
 
-    <!-- Results Section -->
-    <div id="result-container" class="hidden mt-10 animate-fade-in border-t border-zinc-800/50 pt-8 text-center">
-      <p class="text-xs font-semibold text-zinc-500 mb-3 uppercase tracking-widest">Generated Link</p>
-      <a id="short-url-link" href="#" target="_blank" class="block text-xl font-bold text-brand-400 hover:text-brand-300 hover:underline break-all mb-6 transition-colors duration-300"></a>
-      <button 
-        id="copy-btn"
-        class="inline-flex items-center justify-center px-8 py-3 text-xs font-bold tracking-widest uppercase text-brand-400 bg-brand-950/30 border border-brand-500/50 rounded-lg hover:bg-brand-500 hover:text-white hover:shadow-[0_0_20px_rgba(236,72,153,0.4)] hover:-translate-y-1 transition-all duration-300 w-full sm:w-auto"
-      >
+    <div id="result-container" class="result-section">
+      <p class="result-label">Generated Link</p>
+      <a id="short-url-link" href="#" target="_blank" class="result-link"></a>
+      <button id="copy-btn" class="btn-secondary">
         <span id="copy-text">Copy to Clipboard</span>
       </button>
     </div>

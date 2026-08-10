@@ -1,0 +1,60 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Automated Deployment for URL Shortener Stack on AWS EC2'
+
+Parameters:
+  KeyName:
+    Description: (Optional) Name of an existing EC2 KeyPair in your AWS account if you want SSH access to the server. Leave blank if you don't need SSH access.
+    Type: String
+    Default: ""
+
+Conditions:
+  HasKeyName: !Not [!Equals [!Ref KeyName, ""]]
+
+Resources:
+  UrlShortenerSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow HTTP and SSH traffic from the internet
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+
+  UrlShortenerInstance:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: t3.micro # Free-tier eligible
+      ImageId: '{{resolve:ssm:/aws/service/canonical/ubuntu/server/22.04/stable/current/amd64/hvm/ebs-gp2/ami-id}}'
+      KeyName: !If [HasKeyName, !Ref KeyName, !Ref "AWS::NoValue"]
+      SecurityGroupIds:
+        - !GetAtt UrlShortenerSecurityGroup.GroupId
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          # 1. Update packages and install Docker + Git
+          apt-get update -y
+          apt-get install -y docker.io docker-compose-plugin git
+          systemctl enable --now docker
+          
+          # 2. Navigate to user directory
+          cd /home/ubuntu
+          
+          # 3. Clone the GitHub repository
+          git clone https://github.com/sumanjha8078-max/URL-Shortener.git
+          cd URL-Shortener
+          
+          # 4. Spin up the Database, Cache, and API automatically!
+          docker compose up -d --build
+          
+          # 5. Fix permissions for the ubuntu user
+          chown -R ubuntu:ubuntu /home/ubuntu/URL-Shortener
+
+Outputs:
+  AppURL:
+    Description: The public URL of your URL Shortener!
+    Value: !Sub 'http://${UrlShortenerInstance.PublicDnsName}'
