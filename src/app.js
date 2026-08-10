@@ -16,9 +16,16 @@ app.use(express.static('src/public'));
 // Routes
 app.use('/', urlRoutes);
 
-// Initialize DB and Cache on cold start
-connectDB();
-connectRedis();
+// Lazy Initialization for Serverless (Vercel)
+let isInitialized = false;
+app.use(async (req, res, next) => {
+  if (!isInitialized) {
+    await connectDB();
+    await connectRedis();
+    isInitialized = true;
+  }
+  next();
+});
 
 // Export for Vercel Serverless
 export default app;
