@@ -16,14 +16,16 @@ app.use(express.static('src/public'));
 // Routes
 app.use('/', urlRoutes);
 
-// Initialize DB and Cache, then start server
-const startServer = async () => {
-  await connectDB();
-  await connectRedis();
+// Initialize DB and Cache on cold start
+connectDB();
+connectRedis();
 
+// Export for Vercel Serverless
+export default app;
+
+// Only listen locally if not running in Vercel
+if (!process.env.VERCEL) {
   app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
   });
-};
-
-startServer();
+}
