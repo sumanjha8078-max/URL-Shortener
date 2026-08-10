@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  api:
+    build: .
+    container_name: url-shortener-api
+    ports:
+      - '80:3000'
+      - '3000:3000'
+    environment:
+      - PORT=3000
+      - MONGO_URI=mongodb://mongo:27017/url-shortener
+      - REDIS_URI=redis://redis:6379
+      - MONGODB_URI=mongodb://mongo:27017/url-shortener # Fallback mapping
+      - REDIS_URL=redis://redis:6379 # Fallback mapping
+    depends_on:
+      - mongo
+      - redis
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  mongo:
+    image: mongo:6.0
+    container_name: url-shortener-mongo
+    ports:
+      - '27017:27017'
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  redis:
+    image: redis:alpine
+    container_name: url-shortener-redis
+    ports:
+      - '6379:6379'
+    volumes:
+      - redis-data:/data
+    networks:
+      - app-network
+    restart: unless-stopped
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  mongo-data:
+  redis-data:

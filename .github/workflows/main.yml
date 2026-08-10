@@ -1,0 +1,62 @@
+name: CI/CD Pipeline
+
+# Trigger the workflow on pushes and pull requests to the main branch
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  # Job 1: Test Job
+  test:
+    name: Run Linting and Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Check out the code from the repository
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # Step 2: Set up the Node.js environment
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20' # Matching the Node version in our Dockerfile
+          cache: 'npm'       # Enable npm caching for faster subsequent runs
+
+      # Step 3: Install all dependencies for testing (ci is faster and strictly uses package-lock)
+      - name: Install Dependencies
+        run: npm ci
+
+      # Step 4: Run the linting check (Assuming 'npm run lint' is configured in package.json)
+      - name: Run Lint
+        run: npm run lint
+
+  # Job 2: Build Job
+  build:
+    name: Build Docker Image
+    needs: test # Ensure the build job only runs if the test job is completely successful
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Check out the code from the repository
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # Step 2: Set up Docker Buildx (A Docker CLI plugin for extended build capabilities)
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # Step 3: Build the Docker image (Without pushing it to a registry)
+      # This step verifies that the Dockerfile is valid and successfully builds in a clean environment.
+      - name: Build API Docker Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: false # Do not push to a registry, just test the build
+          tags: url-shortener-api:latest
+          cache-from: type=gha # Use GitHub Actions caching for layers
+          cache-to: type=gha,mode=max
